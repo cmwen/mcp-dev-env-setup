@@ -1,5 +1,5 @@
 {
-  "name": "mcp-dev-env-setup",
+  "name": "@cmwen/mcp-dev-env-setup",
   "version": "2.0.0",
   "description": "MCP server for automating local development environment setup (Python, Node, Flutter, Android) across macOS and Linux",
   "main": "./dist/index.js",
@@ -7,6 +7,10 @@
   "bin": {
     "devenv": "./dist/index.js",
     "mcp-dev-env-setup": "./dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
     "build": "tsc",

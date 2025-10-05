@@ -1,0 +1,34 @@
+# Source files
+src/
+__tests__/
+jest.config.js
+tsconfig.json
+
+# Git and GitHub
+.git/
+.github/
+
+# Development documentation
+AGENTS.md
+API.md
+ARCHITECTURE.md
+CHANGELOG.md
+CI.md
+CLI.md
+CLI_CI_SUMMARY.md
+CONTRIBUTING.md
+DELIVERY_SUMMARY.md
+DEVELOPMENT.md
+QUICKSTART.md
+REFACTORING_SUMMARY.md
+USAGE.md
+
+# Development files
+node_modules/
+*.log
+.DS_Store
+*.swp
+*.swo
+
+# Coverage reports
+coverage/

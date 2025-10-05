@@ -1,7 +1,7 @@
 # Dev Environment Setup Tool
 
 [![CI](https://github.com/cmwen/mcp-dev-env-setup/actions/workflows/ci.yml/badge.svg)](https://github.com/cmwen/mcp-dev-env-setup/actions/workflows/ci.yml)
-[![npm version](https://badge.fury.io/js/mcp-dev-env-setup.svg)](https://badge.fury.io/js/mcp-dev-env-setup)
+[![npm version](https://badge.fury.io/js/%40cmwen%2Fmcp-dev-env-setup.svg)](https://badge.fury.io/js/%40cmwen%2Fmcp-dev-env-setup)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A production-ready dual-mode tool that automates the setup of local development environments for Python, Node.js, Flutter, Android, and more across **macOS and Linux** systems.
@@ -28,7 +28,7 @@ A production-ready dual-mode tool that automates the setup of local development 
 ### Installation
 
 ```bash
-npm install -g mcp-dev-env-setup
+npm install -g @cmwen/mcp-dev-env-setup
 ```
 
 ### CLI Mode
