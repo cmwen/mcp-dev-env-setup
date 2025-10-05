@@ -5,6 +5,101 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - TBD
+
+### Added
+
+#### Dual-Mode Operation
+- ✅ **CLI Mode**: Standalone command-line tool with `devenv` command
+  - `devenv check` - Check installed tools
+  - `devenv info` - Display system information
+  - `devenv list` - List available tools
+  - `devenv install <tool>` - Install specific tool
+  - `devenv install-all` - Install multiple tools
+  - Rich terminal output with colors and spinners
+- ✅ **MCP STDIO Mode**: Model Context Protocol server mode (original functionality)
+  - Automatically detects mode based on arguments
+  - No arguments or `--stdio`/`--mcp` flag runs MCP mode
+  - CLI commands trigger CLI mode
+
+#### CLI Features
+- ✅ **Commander.js Integration**: Full-featured CLI with help, options, and subcommands
+- ✅ **Chalk**: Colored terminal output for better UX
+- ✅ **Ora**: Elegant terminal spinners for async operations
+- ✅ **Progress Indicators**: Real-time feedback during installations
+- ✅ **Multiple Bin Entries**: Available as both `devenv` and `mcp-dev-env-setup`
+
+#### CI/CD Support
+- ✅ **GitHub Actions Workflows**:
+  - `ci.yml` - Comprehensive CI pipeline
+    - Multi-platform testing (Ubuntu, macOS)
+    - Multi Node.js version testing (18.x, 20.x)
+    - Lint, build, and integration tests
+    - Artifact uploads
+  - `release.yml` - Automated release pipeline
+    - GitHub Releases creation
+    - npm publishing
+    - Platform-specific binary builds
+    - Changelog extraction
+- ✅ **CI Badge**: Added to README
+- ✅ **Test Commands**: Automated CLI testing in CI
+
+#### Documentation
+- ✅ **CLI.md**: Complete CLI usage guide
+  - Installation instructions
+  - All commands with examples
+  - Common workflows
+  - Platform-specific notes
+  - Troubleshooting
+- ✅ **CI.md**: CI/CD documentation
+  - Workflow descriptions
+  - Setup instructions
+  - Release process
+  - Troubleshooting
+  - Best practices
+
+### Changed
+
+#### Architecture
+- 🔄 **Modular Entry Point**: `src/index.ts` now routes to CLI or MCP mode
+- 🔄 **Separated MCP Server**: Moved to `src/mcp-server.ts`
+- 🔄 **New CLI Module**: `src/cli.ts` with full CLI implementation
+- 🔄 **Dynamic Imports**: CLI dependencies only loaded when needed
+
+#### Dependencies
+- ⚡ **New Runtime Dependencies**:
+  - `commander` ^14.0.1 - CLI framework
+  - `chalk` ^5.6.2 - Terminal colors
+  - `ora` ^9.0.0 - Terminal spinners
+
+#### Build & Distribution
+- ⚡ **Multiple Bin Entries**: Tool available as `devenv` (short) and `mcp-dev-env-setup` (full)
+- ⚡ **Improved Build Process**: Excludes tests from production build
+- ⚡ **CI Integration**: Automated testing on every push and PR
+
+### Technical Details
+
+#### Mode Detection
+```typescript
+// Detects mode based on command-line arguments
+const isMCPMode = args.length === 0 || args.includes('--stdio') || args.includes('--mcp');
+```
+
+#### CLI Commands Structure
+```bash
+devenv
+├── check [--tool <name>]     # Check environment
+├── info                       # System information  
+├── install <tool> [--version] # Install tool
+├── install-all [--skip]       # Install multiple
+└── list                       # List tools
+```
+
+#### CI Workflow Matrix
+- **Platforms**: Ubuntu, macOS
+- **Node Versions**: 18.x, 20.x
+- **Total Combinations**: 4 test scenarios
+
 ## [2.0.0] - 2025-01-05
 
 ### Added

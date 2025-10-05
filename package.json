@@ -5,6 +5,7 @@
   "main": "./dist/index.js",
   "type": "module",
   "bin": {
+    "devenv": "./dist/index.js",
     "mcp-dev-env-setup": "./dist/index.js"
   },
   "scripts": {
@@ -20,6 +21,7 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "cli",
     "development",
     "environment",
     "setup",
@@ -32,7 +34,8 @@
     "cross-platform",
     "automation",
     "devtools",
-    "package-manager"
+    "package-manager",
+    "devenv"
   ],
   "author": "",
   "license": "MIT",
@@ -50,6 +53,9 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.1",
+    "ora": "^9.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

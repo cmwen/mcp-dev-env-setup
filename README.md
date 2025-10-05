@@ -1,9 +1,18 @@
-# MCP Dev Environment Setup Server
+# Dev Environment Setup Tool
 
-A production-ready MCP (Model Context Protocol) server that automates the setup of local development environments for Python, Node.js, Flutter, Android, and more across **macOS and Linux** systems.
+[![CI](https://github.com/cmwen/mcp-dev-env-setup/actions/workflows/ci.yml/badge.svg)](https://github.com/cmwen/mcp-dev-env-setup/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/mcp-dev-env-setup.svg)](https://badge.fury.io/js/mcp-dev-env-setup)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A production-ready dual-mode tool that automates the setup of local development environments for Python, Node.js, Flutter, Android, and more across **macOS and Linux** systems.
+
+**🎯 Two Modes:**
+- **CLI Mode**: Standalone command-line tool (`devenv` command)
+- **MCP Mode**: Model Context Protocol server for AI assistant integration
 
 ## ✨ Features
 
+- **Dual Mode Operation**: Use as standalone CLI or MCP server
 - **Cross-Platform Support**: Works on both macOS and Linux distributions
 - **Intelligent Package Manager Detection**: Automatically detects and uses the appropriate package manager (Homebrew, apt, dnf, yum, pacman, zypper)
 - **Modular Architecture**: Clean, testable, and extensible codebase
@@ -11,6 +20,7 @@ A production-ready MCP (Model Context Protocol) server that automates the setup 
 - **Automated Installation**: One-command setup for entire development stacks
 - **Environment Validation**: Check what's installed and get recommendations
 - **Shell Configuration**: Automatically configures environment variables and PATH
+- **CI/CD Ready**: GitHub Actions workflows included
 - **Unit Tested**: Comprehensive test coverage for reliability
 
 ## 🚀 Quick Start
@@ -21,7 +31,34 @@ A production-ready MCP (Model Context Protocol) server that automates the setup 
 npm install -g mcp-dev-env-setup
 ```
 
-### Usage with MCP Clients
+### CLI Mode
+
+Use the `devenv` command for standalone operation:
+
+```bash
+# Check installed tools
+devenv check
+
+# Get system information
+devenv info
+
+# List available tools
+devenv list
+
+# Install a tool
+devenv install python
+devenv install nodejs
+
+# Install multiple tools
+devenv install-all
+
+# Get help
+devenv --help
+```
+
+See [CLI.md](./CLI.md) for complete CLI documentation.
+
+### MCP Mode
 
 Configure in your MCP client (e.g., Claude Desktop):
 
@@ -34,6 +71,14 @@ Configure in your MCP client (e.g., Claude Desktop):
     }
   }
 }
+```
+
+Or run directly in MCP STDIO mode:
+
+```bash
+devenv --mcp
+# or
+devenv --stdio
 ```
 
 ## 📋 Supported Tools
@@ -110,10 +155,13 @@ Install all development environments at once with optional skip list.
 
 ## 📚 Documentation
 
+- [**CLI Usage Guide**](./CLI.md) - Complete CLI command reference and examples
 - [**API Documentation**](./API.md) - Complete API reference for all modules
 - [**AI Agents Guide**](./AGENTS.md) - Guide for AI agents to use and extend this project
+- [**Development Guide**](./DEVELOPMENT.md) - Setup, development workflow, and contribution guidelines
 - [**Quick Start Guide**](./QUICKSTART.md) - Get started in minutes
 - [**Usage Examples**](./USAGE.md) - Common usage patterns
+- [**Changelog**](./CHANGELOG.md) - Version history and migration guides
 
 ## 🏗️ Architecture
 
