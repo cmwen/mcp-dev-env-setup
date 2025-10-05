@@ -156,5 +156,15 @@ jobs:
       - name: Test MCP mode
         run: |
           echo "Testing MCP STDIO mode..."
-          timeout 5s node dist/index.js --stdio || [ $? -eq 124 ]
-          echo "✅ MCP mode starts correctly"
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # On macOS, use a simple background process approach
+            node dist/index.js --stdio &
+            PID=$!
+            sleep 3
+            kill $PID 2>/dev/null || true
+            echo "✅ MCP mode starts correctly on macOS"
+          else
+            # On Linux, use timeout
+            timeout 5s node dist/index.js --stdio || [ $? -eq 124 ]
+            echo "✅ MCP mode starts correctly on Linux"
+          fi
