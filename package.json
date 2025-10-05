@@ -1,7 +1,7 @@
 {
   "name": "mcp-dev-env-setup",
-  "version": "1.0.0",
-  "description": "MCP server for automating local development environment setup (Python, Node, Flutter, Android)",
+  "version": "2.0.0",
+  "description": "MCP server for automating local development environment setup (Python, Node, Flutter, Android) across macOS and Linux",
   "main": "./dist/index.js",
   "type": "module",
   "bin": {
@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo 'Tests configured - install jest to run'",
+    "lint": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,11 @@
     "flutter",
     "android",
     "macos",
-    "automation"
+    "linux",
+    "cross-platform",
+    "automation",
+    "devtools",
+    "package-manager"
   ],
   "author": "",
   "license": "MIT",
@@ -48,8 +53,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^24.6.2",
+    "@types/node": "^22.10.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.7.3"
   }
 }

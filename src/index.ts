@@ -7,39 +7,69 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { checkAllEnvironments } from './utils/check.js';
+import { isSupported } from './utils/shell.js';
+import { getSystemStatus, checkToolInstalled, getRecommendations } from './validators/environment-validator.js';
 import {
-  installHomebrew,
-  installPython,
-  installNodeJS,
+  installPackageManager,
+  installTool,
+  installMultipleTools,
   installNvm,
-  installFlutter,
-  installAndroid,
-} from './tools/install.js';
-import { isMacOS } from './utils/shell.js';
+  installNodeViaTarget,
+  installAndroidStudio,
+} from './installers/unified-installer.js';
+import { getAllToolNames } from './core/tool-config.js';
+import { getSystemInfo } from './core/package-manager.js';
 
 // Tool definitions
 const TOOLS: Tool[] = [
   {
     name: 'check_environment',
     description:
-      'Check which development tools are currently installed on the system (Python, Node.js, Flutter, Android, etc.)',
+      'Check which development tools are currently installed on the system (Python, Node.js, Flutter, Android, Git, Docker, etc.)',
     inputSchema: {
       type: 'object',
       properties: {},
     },
   },
   {
-    name: 'install_homebrew',
-    description: 'Install Homebrew package manager (required for other installations)',
+    name: 'get_system_info',
+    description:
+      'Get detailed system information including OS, architecture, and package manager',
     inputSchema: {
       type: 'object',
       properties: {},
+    },
+  },
+  {
+    name: 'install_package_manager',
+    description: 'Install package manager if needed (e.g., Homebrew on macOS)',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'install_tool',
+    description: 'Install a specific development tool (python, nodejs, git, docker, java, go, rust, flutter)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tool: {
+          type: 'string',
+          description: 'Name of the tool to install',
+          enum: getAllToolNames(),
+        },
+        version: {
+          type: 'string',
+          description: 'Optional version specification (for tools that support it)',
+        },
+      },
+      required: ['tool'],
     },
   },
   {
     name: 'install_python',
-    description: 'Install Python 3 and pip via Homebrew',
+    description: 'Install Python 3 and pip via package manager',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -47,7 +77,7 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'install_nodejs',
-    description: 'Install Node.js via nvm (Node Version Manager)',
+    description: 'Install Node.js via nvm or package manager',
     inputSchema: {
       type: 'object',
       properties: {
@@ -76,9 +106,27 @@ const TOOLS: Tool[] = [
     },
   },
   {
+    name: 'install_multiple',
+    description: 'Install multiple development tools at once',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tools: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: getAllToolNames(),
+          },
+          description: 'List of tools to install',
+        },
+      },
+      required: ['tools'],
+    },
+  },
+  {
     name: 'setup_all',
     description:
-      'Install all development environments (Homebrew, Python, Node.js, Flutter, Android)',
+      'Install all development environments (Package Manager, Python, Node.js, Flutter, Android)',
     inputSchema: {
       type: 'object',
       properties: {
@@ -86,9 +134,8 @@ const TOOLS: Tool[] = [
           type: 'array',
           items: {
             type: 'string',
-            enum: ['python', 'nodejs', 'flutter', 'android'],
           },
-          description: 'List of environments to skip',
+          description: 'List of tools to skip',
         },
       },
     },
@@ -102,7 +149,7 @@ class DevEnvSetupServer {
     this.server = new Server(
       {
         name: 'mcp-dev-env-setup',
-        version: '1.0.0',
+        version: '2.0.0',
       },
       {
         capabilities: {
@@ -137,21 +184,39 @@ class DevEnvSetupServer {
       const { name, arguments: args } = request.params;
 
       try {
-        // Check if running on macOS
-        if (!isMacOS()) {
+        // Check if running on supported OS
+        if (!isSupported()) {
           return {
             content: [
               {
                 type: 'text',
-                text: 'Error: This MCP server currently only supports macOS. Support for other platforms coming soon.',
+                text: 'Error: This MCP server currently supports macOS and Linux only. Windows support is coming soon.',
               },
             ],
           };
         }
 
         switch (name) {
+          case 'get_system_info': {
+            const info = await getSystemInfo();
+            const report = `# System Information\n\n` +
+              `**Operating System**: ${info.os}\n` +
+              `**Platform**: ${info.platform}\n` +
+              `**Architecture**: ${info.arch}\n` +
+              `**Package Manager**: ${info.packageManager ? info.packageManager.name : 'None detected'}\n`;
+            
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: report,
+                },
+              ],
+            };
+          }
+
           case 'check_environment': {
-            const status = await checkAllEnvironments();
+            const status = await getSystemStatus();
             const report = this.formatEnvironmentReport(status);
             return {
               content: [
@@ -163,8 +228,35 @@ class DevEnvSetupServer {
             };
           }
 
-          case 'install_homebrew': {
-            const result = await installHomebrew();
+          case 'install_package_manager': {
+            const result = await installPackageManager();
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: this.formatInstallResult(result),
+                },
+              ],
+            };
+          }
+
+          case 'install_tool': {
+            const toolName = (args as any)?.tool;
+            const version = (args as any)?.version;
+            
+            if (!toolName) {
+              return {
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Error: tool parameter is required',
+                  },
+                ],
+                isError: true,
+              };
+            }
+
+            const result = await installTool(toolName, version ? { version } : undefined);
             return {
               content: [
                 {
@@ -176,7 +268,7 @@ class DevEnvSetupServer {
           }
 
           case 'install_python': {
-            const result = await installPython();
+            const result = await installTool('python');
             return {
               content: [
                 {
@@ -189,7 +281,7 @@ class DevEnvSetupServer {
 
           case 'install_nodejs': {
             const version = (args as any)?.version || 'lts';
-            const result = await installNodeJS(version);
+            const result = await installNodeViaTarget(version);
             return {
               content: [
                 {
@@ -201,7 +293,7 @@ class DevEnvSetupServer {
           }
 
           case 'install_flutter': {
-            const result = await installFlutter();
+            const result = await installTool('flutter');
             return {
               content: [
                 {
@@ -213,12 +305,38 @@ class DevEnvSetupServer {
           }
 
           case 'install_android': {
-            const result = await installAndroid();
+            const result = await installAndroidStudio();
             return {
               content: [
                 {
                   type: 'text',
                   text: this.formatInstallResult(result),
+                },
+              ],
+            };
+          }
+
+          case 'install_multiple': {
+            const tools = (args as any)?.tools || [];
+            if (!Array.isArray(tools) || tools.length === 0) {
+              return {
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Error: tools parameter must be a non-empty array',
+                  },
+                ],
+                isError: true,
+              };
+            }
+
+            const results = await installMultipleTools(tools);
+            const report = this.formatMultipleInstallResults(results);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: report,
                 },
               ],
             };
@@ -262,95 +380,109 @@ class DevEnvSetupServer {
     });
   }
 
-  private formatEnvironmentReport(status: Awaited<ReturnType<typeof checkAllEnvironments>>): string {
+  private formatEnvironmentReport(status: Awaited<ReturnType<typeof getSystemStatus>>): string {
     let report = '# Development Environment Status\n\n';
+    
+    report += `**Operating System**: ${status.os}\n`;
+    report += `**Architecture**: ${status.arch}\n`;
+    report += `**Package Manager**: ${status.packageManager ? status.packageManager.name : 'None detected'}\n\n`;
 
-    const items = [
-      status.homebrew,
-      status.python,
-      status.nodejs,
-      status.nvm,
-      status.flutter,
-      status.java,
-      status.androidStudio,
-    ];
+    report += '## Installed Tools\n\n';
 
-    for (const item of items) {
-      const icon = item.installed ? '✅' : '❌';
-      report += `${icon} **${item.name}**: ${item.installed ? 'Installed' : 'Not installed'}`;
-      if (item.version) {
-        report += ` (${item.version})`;
+    const installedTools = status.tools.filter(t => t.installed);
+    const notInstalledTools = status.tools.filter(t => !t.installed);
+
+    if (installedTools.length > 0) {
+      for (const tool of installedTools) {
+        report += `✅ **${tool.displayName}**`;
+        if (tool.version) {
+          report += ` - ${tool.version}`;
+        }
+        report += '\n';
       }
-      report += '\n';
+    } else {
+      report += 'No tools installed yet.\n';
     }
 
-    report += '\n## Recommendations\n';
-    if (!status.homebrew.installed) {
-      report += '- Install Homebrew first (required for other installations)\n';
+    if (notInstalledTools.length > 0) {
+      report += '\n## Not Installed\n\n';
+      for (const tool of notInstalledTools) {
+        report += `❌ **${tool.displayName}**\n`;
+      }
     }
-    if (!status.python.installed) {
-      report += '- Install Python for Python development\n';
-    }
-    if (!status.nodejs.installed) {
-      report += '- Install Node.js for JavaScript/TypeScript development\n';
-    }
-    if (!status.flutter.installed) {
-      report += '- Install Flutter for mobile app development\n';
-    }
-    if (!status.java.installed || !status.androidStudio.installed) {
-      report += '- Install Android development tools for Android app development\n';
+
+    const recommendations = getRecommendations(status);
+    if (recommendations.length > 0) {
+      report += '\n## Recommendations\n\n';
+      for (const rec of recommendations) {
+        report += `- ${rec}\n`;
+      }
     }
 
     return report;
   }
 
-  private formatInstallResult(result: { success: boolean; message: string; details?: string }): string {
+  private formatInstallResult(result: { success: boolean; message: string; details?: string; needsRestart?: boolean }): string {
     let output = result.success ? '✅ Success\n\n' : '❌ Failed\n\n';
     output += result.message;
+    if (result.needsRestart) {
+      output += '\n\n⚠️ **Please restart your terminal for changes to take effect.**';
+    }
     if (result.details) {
       output += '\n\n**Details:**\n```\n' + result.details + '\n```';
     }
     return output;
   }
 
+  private formatMultipleInstallResults(results: Record<string, { success: boolean; message: string; details?: string }>): string {
+    let report = '# Installation Results\n\n';
+    
+    for (const [tool, result] of Object.entries(results)) {
+      const icon = result.success ? '✅' : '❌';
+      report += `${icon} **${tool}**: ${result.message}\n`;
+    }
+
+    return report;
+  }
+
   private async setupAllEnvironments(skip: string[]): Promise<string> {
     let report = '# Setting Up All Development Environments\n\n';
 
-    // 1. Install Homebrew (always needed)
-    report += '## 1. Installing Homebrew\n';
-    const brewResult = await installHomebrew();
-    report += this.formatInstallResult(brewResult) + '\n\n';
+    // 1. Install Package Manager (always needed on macOS)
+    report += '## 1. Package Manager\n';
+    const pmResult = await installPackageManager();
+    report += this.formatInstallResult(pmResult) + '\n\n';
 
-    if (!brewResult.success) {
-      report += '❌ Cannot continue without Homebrew. Please install it manually.\n';
+    if (!pmResult.success) {
+      report += '❌ Cannot continue without a package manager.\n';
       return report;
     }
 
-    // 2. Install Python
-    if (!skip.includes('python')) {
-      report += '## 2. Installing Python\n';
-      const pythonResult = await installPython();
-      report += this.formatInstallResult(pythonResult) + '\n\n';
+    // 2. Install common tools
+    const toolsToInstall = ['python', 'nodejs', 'git'];
+    const filtered = toolsToInstall.filter(t => !skip.includes(t));
+
+    if (filtered.length > 0) {
+      report += '## 2. Installing Common Tools\n';
+      const results = await installMultipleTools(filtered);
+      for (const [tool, result] of Object.entries(results)) {
+        const icon = result.success ? '✅' : '❌';
+        report += `${icon} **${tool}**: ${result.message}\n`;
+      }
+      report += '\n';
     }
 
-    // 3. Install Node.js
-    if (!skip.includes('nodejs')) {
-      report += '## 3. Installing Node.js\n';
-      const nodeResult = await installNodeJS('lts');
-      report += this.formatInstallResult(nodeResult) + '\n\n';
-    }
-
-    // 4. Install Flutter
+    // 3. Install Flutter if requested
     if (!skip.includes('flutter')) {
-      report += '## 4. Installing Flutter\n';
-      const flutterResult = await installFlutter();
+      report += '## 3. Installing Flutter\n';
+      const flutterResult = await installTool('flutter');
       report += this.formatInstallResult(flutterResult) + '\n\n';
     }
 
-    // 5. Install Android
+    // 4. Install Android if requested
     if (!skip.includes('android')) {
-      report += '## 5. Installing Android Development Tools\n';
-      const androidResult = await installAndroid();
+      report += '## 4. Installing Android Development Tools\n';
+      const androidResult = await installAndroidStudio();
       report += this.formatInstallResult(androidResult) + '\n\n';
     }
 

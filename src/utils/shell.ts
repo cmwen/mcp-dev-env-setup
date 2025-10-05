@@ -68,10 +68,31 @@ export function isMacOS(): boolean {
 }
 
 /**
+ * Check if running on Linux
+ */
+export function isLinux(): boolean {
+  return process.platform === 'linux';
+}
+
+/**
+ * Check if running on Windows
+ */
+export function isWindows(): boolean {
+  return process.platform === 'win32';
+}
+
+/**
+ * Check if the system is supported (macOS or Linux)
+ */
+export function isSupported(): boolean {
+  return isMacOS() || isLinux();
+}
+
+/**
  * Get the user's home directory
  */
 export function getHomeDirectory(): string {
-  return process.env.HOME || '~';
+  return process.env.HOME || process.env.USERPROFILE || '~';
 }
 
 /**
@@ -84,8 +105,44 @@ export function getShellConfigPath(): string {
   if (shell.includes('zsh')) {
     return `${home}/.zshrc`;
   } else if (shell.includes('bash')) {
-    return `${home}/.bash_profile`;
+    // On macOS, use .bash_profile; on Linux, use .bashrc
+    if (isMacOS()) {
+      return `${home}/.bash_profile`;
+    } else {
+      return `${home}/.bashrc`;
+    }
   }
   
   return `${home}/.profile`;
+}
+
+/**
+ * Get OS-specific information
+ */
+export async function getOSInfo(): Promise<{
+  platform: string;
+  release: string;
+  arch: string;
+  distro?: string;
+}> {
+  const info = {
+    platform: process.platform as string,
+    release: process.release.name || 'unknown',
+    arch: process.arch as string,
+  };
+
+  // For Linux, try to detect the distribution
+  if (isLinux()) {
+    const result = await executeCommand('cat /etc/os-release');
+    if (result.success) {
+      const lines = result.stdout.split('\n');
+      const nameMatch = lines.find((line) => line.startsWith('NAME='));
+      if (nameMatch) {
+        const distro = nameMatch.split('=')[1].replace(/"/g, '');
+        return { ...info, distro };
+      }
+    }
+  }
+
+  return info;
 }

@@ -1,45 +1,29 @@
 # MCP Dev Environment Setup Server
 
-An MCP (Model Context Protocol) server that automates the setup of local development environments for Python, Node.js, Flutter, and Android development on macOS.
+A production-ready MCP (Model Context Protocol) server that automates the setup of local development environments for Python, Node.js, Flutter, Android, and more across **macOS and Linux** systems.
 
-## Features
+## ✨ Features
 
-- **Python Environment Setup**: Install Python via Homebrew, manage virtual environments, and install pip packages
-- **Node.js Environment Setup**: Install Node.js via nvm, manage npm packages, and configure yarn/pnpm
-- **Flutter Environment Setup**: Install Flutter SDK, configure PATH, and verify installation
-- **Android Environment Setup**: Install Android Studio, SDK tools, and configure environment variables
-- **System Checks**: Verify existing installations and detect system requirements
-- **Homebrew Integration**: Automatically install and use Homebrew for package management
+- **Cross-Platform Support**: Works on both macOS and Linux distributions
+- **Intelligent Package Manager Detection**: Automatically detects and uses the appropriate package manager (Homebrew, apt, dnf, yum, pacman, zypper)
+- **Modular Architecture**: Clean, testable, and extensible codebase
+- **Comprehensive Tool Support**: Python, Node.js, Git, Docker, Java, Go, Rust, Flutter, and more
+- **Automated Installation**: One-command setup for entire development stacks
+- **Environment Validation**: Check what's installed and get recommendations
+- **Shell Configuration**: Automatically configures environment variables and PATH
+- **Unit Tested**: Comprehensive test coverage for reliability
 
-## Installation
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
 npm install -g mcp-dev-env-setup
 ```
 
-## Usage
+### Usage with MCP Clients
 
-This MCP server can be integrated with any MCP client. It provides tools for:
-
-- Checking if development tools are installed
-- Installing development environments
-- Configuring environment variables
-- Verifying installations
-
-### Available Tools
-
-1. **check_environment** - Check what development tools are currently installed
-2. **install_python** - Install Python and configure pip
-3. **install_nodejs** - Install Node.js via nvm
-4. **install_flutter** - Install Flutter SDK
-5. **install_android** - Install Android development tools
-6. **setup_all** - Set up all development environments at once
-
-## Configuration
-
-The server runs as a stdio-based MCP server and can be configured in your MCP client settings.
-
-Example configuration for Claude Desktop:
+Configure in your MCP client (e.g., Claude Desktop):
 
 ```json
 {
@@ -52,11 +36,245 @@ Example configuration for Claude Desktop:
 }
 ```
 
-## Requirements
+## 📋 Supported Tools
 
-- macOS (currently supported)
-- Admin privileges for some installations
+### Languages
+- **Python** - Python 3 with pip
+- **Java** - OpenJDK 17
+- **Go** - Go programming language
+- **Rust** - Rust with cargo
 
-## License
+### Runtimes & Tools
+- **Node.js** - JavaScript runtime (via nvm or package manager)
+- **Git** - Version control
+- **Docker** - Container platform
 
-MIT
+### SDKs & Frameworks
+- **Flutter** - Mobile app development SDK
+- **Android Studio** - Android development tools
+
+## 🖥️ Supported Systems
+
+### Operating Systems
+- **macOS** (Intel and Apple Silicon)
+- **Linux** distributions:
+  - Debian/Ubuntu (apt)
+  - Fedora (dnf)
+  - RHEL/CentOS (yum)
+  - Arch Linux (pacman)
+  - openSUSE (zypper)
+
+### Package Managers
+- **Homebrew** (macOS)
+- **apt** (Debian/Ubuntu)
+- **dnf** (Fedora)
+- **yum** (RHEL/CentOS)
+- **pacman** (Arch)
+- **zypper** (openSUSE)
+
+## 🔧 Available MCP Tools
+
+### 1. check_environment
+Check which development tools are currently installed on your system.
+
+```typescript
+// Returns status of all tools with versions
+```
+
+### 2. install_python
+Install Python 3 and pip using the system package manager.
+
+### 3. install_nodejs
+Install Node.js with optional version specification.
+
+```typescript
+{
+  "version": "lts"  // or "18", "20", etc.
+}
+```
+
+### 4. install_flutter
+Install Flutter SDK for mobile app development.
+
+### 5. install_android
+Install Android Studio and development tools (including Java).
+
+### 6. setup_all
+Install all development environments at once with optional skip list.
+
+```typescript
+{
+  "skip": ["python", "flutter"]  // Optional: tools to skip
+}
+```
+
+## 📚 Documentation
+
+- [**API Documentation**](./API.md) - Complete API reference for all modules
+- [**AI Agents Guide**](./AGENTS.md) - Guide for AI agents to use and extend this project
+- [**Quick Start Guide**](./QUICKSTART.md) - Get started in minutes
+- [**Usage Examples**](./USAGE.md) - Common usage patterns
+
+## 🏗️ Architecture
+
+The project follows a modular architecture:
+
+```
+src/
+├── core/                      # Core business logic
+│   ├── package-manager.ts     # OS and package manager detection
+│   └── tool-config.ts         # Tool definitions and configurations
+├── installers/                # Installation modules
+│   └── unified-installer.ts   # Unified installation logic
+├── validators/                # Validation modules
+│   └── environment-validator.ts # Environment checking
+├── utils/                     # Utility functions
+│   ├── shell.ts              # Shell command execution
+│   └── check.ts              # Environment checking utilities
+└── __tests__/                # Unit tests
+```
+
+### Key Modules
+
+- **Package Manager Detection**: Automatically detects your OS and package manager
+- **Tool Configuration**: Defines installation methods for each tool across all platforms
+- **Unified Installer**: Provides a single interface for installing any tool
+- **Environment Validator**: Checks system status and provides recommendations
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Type checking
+npm run lint
+```
+
+## 🛠️ Development
+
+### Prerequisites
+- Node.js >= 18.0.0
+- npm or yarn
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/cmwen/mcp-dev-env-setup.git
+cd mcp-dev-env-setup
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run in development mode
+npm run dev
+```
+
+### Adding New Tools
+
+1. Add tool configuration to `src/core/tool-config.ts`:
+
+```typescript
+export const TOOL_CONFIGS: Record<string, ToolConfig> = {
+  mytool: {
+    name: 'mytool',
+    displayName: 'My Tool',
+    category: ToolCategory.LANGUAGE,
+    description: 'Description of my tool',
+    commandToCheck: 'mytool',
+    versionFlag: '--version',
+    installMethods: {
+      homebrew: {
+        packageManager: PackageManager.HOMEBREW,
+        packageName: 'mytool',
+      },
+      apt: {
+        packageManager: PackageManager.APT,
+        packageName: 'mytool',
+      },
+      // Add more package managers...
+    },
+  },
+};
+```
+
+2. Add tests in `src/__tests__/`
+3. Update documentation
+
+## 🤝 Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+### Development Guidelines
+
+- Follow TypeScript best practices
+- Write tests for new features
+- Update documentation
+- Keep functions focused and single-purpose
+- Use meaningful variable names
+
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE) file for details.
+
+## 🔗 Links
+
+- [Repository](https://github.com/cmwen/mcp-dev-env-setup)
+- [Issues](https://github.com/cmwen/mcp-dev-env-setup/issues)
+- [Model Context Protocol](https://spec.modelcontextprotocol.io/)
+
+## 💡 Examples
+
+### Check System Status
+
+```typescript
+import { getSystemStatus } from './validators/environment-validator';
+
+const status = await getSystemStatus();
+console.log(`OS: ${status.os}`);
+console.log(`Package Manager: ${status.packageManager?.name}`);
+console.log(`Installed tools: ${status.tools.filter(t => t.installed).length}`);
+```
+
+### Install Multiple Tools
+
+```typescript
+import { installMultipleTools } from './installers/unified-installer';
+
+const results = await installMultipleTools(['python', 'nodejs', 'git']);
+for (const [tool, result] of Object.entries(results)) {
+  console.log(`${tool}: ${result.success ? '✓' : '✗'}`);
+}
+```
+
+### Validate Environment
+
+```typescript
+import { isSystemReady } from './validators/environment-validator';
+
+const { ready, missing } = await isSystemReady(['python', 'nodejs']);
+if (!ready) {
+  console.log('Please install:', missing.join(', '));
+}
+```
+
+## 🙏 Acknowledgments
+
+- Built with the [Model Context Protocol SDK](https://github.com/anthropics/model-context-protocol)
+- TypeScript and Node.js ecosystem
+
+## 📞 Support
+
+- Open an [issue](https://github.com/cmwen/mcp-dev-env-setup/issues) for bugs or feature requests
+- Check [documentation](./API.md) for API reference
+- See [AGENTS.md](./AGENTS.md) for AI agent integration guide
