@@ -1,0 +1,12 @@
+{
+	"servers": {
+		"dev env mcp local": {
+			"type": "stdio",
+			"command": "node",
+			"args": [
+				"./dist/index.js"
+			]
+		}
+	},
+	"inputs": []
+}
